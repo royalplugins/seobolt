@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SERP Preview Tool — SEObolt Free SEO Tools</title>
+    <meta name="description" content="Free Google SERP preview tool. See exactly how your page will appear in Google search results. Check title length, meta description, and URL formatting.">
+    <style>
+        :root {
+            --gold: #c9a227;
+            --gold-dark: #a88620;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-muted: #6c757d;
+            --border: #e0e0e0;
+            --google-title: #1a0dab;
+            --google-url: #006621;
+            --google-desc: #545454;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ffc107;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--text);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .logo span { color: var(--gold); }
+
+        header nav a {
+            color: #ccc;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 14px;
+        }
+
+        header nav a:hover { color: var(--gold); }
+
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            font-size: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .field { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+
+        .field-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .char-count.ok { background: #d4edda; color: #155724; }
+        .char-count.warn { background: #fff3cd; color: #856404; }
+        .char-count.over { background: #f8d7da; color: #721c24; }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
+        }
+
+        textarea { resize: vertical; min-height: 72px; }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Google SERP Preview */
+        .serp-result {
+            padding: 16px 0;
+        }
+
+        .serp-breadcrumb {
+            font-size: 14px;
+            color: var(--google-url);
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .serp-breadcrumb .favicon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #f1f3f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .serp-breadcrumb .favicon img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+        }
+
+        .serp-breadcrumb .site-name {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .serp-breadcrumb .url-path {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .serp-title {
+            font-size: 20px;
+            line-height: 1.3;
+            color: var(--google-title);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .serp-title:hover { text-decoration: underline; }
+
+        .serp-title.truncated {
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+
+        .serp-description {
+            font-size: 14px;
+            line-height: 1.58;
+            color: var(--google-desc);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .serp-date {
+            color: #70757a;
+        }
+
+        /* Desktop vs Mobile toggle */
+        .device-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .device-toggle button {
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .device-toggle button.active {
+            background: var(--gold);
+            color: #fff;
+            border-color: var(--gold);
+        }
+
+        .serp-preview-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        .serp-preview-box.mobile {
+            max-width: 400px;
+        }
+
+        .score-bar {
+            display: flex;
+            gap: 16px;
+            padding: 16px 0 0;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .score-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .score-dot.green { background: var(--success); }
+        .score-dot.yellow { background: var(--warning); }
+        .score-dot.red { background: var(--danger); }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+        }
+
+        footer a { color: var(--gold); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 600px) {
+            main { margin: 20px auto; }
+            h1 { font-size: 22px; }
+            .serp-preview-box { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SEO<span>bolt</span></div>
+        <nav>
+            <a href="../robots-txt-tester/">Robots.txt Tester</a>
+            <a href="../meta-tag-analyzer/">Meta Tag Analyzer</a>
+            <a href="https://seobolt.io" target="_blank">Get SEObolt</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Google SERP Preview Tool</h1>
+        <p class="subtitle">See exactly how your page will appear in Google search results. Optimize your title, description, and URL for maximum click-through rate.</p>
+
+        <div class="card">
+            <h2>Page Details</h2>
+
+            <div class="field">
+                <div class="field-meta">
+                    <label for="seo-title">SEO Title</label>
+                    <span class="char-count ok" id="title-count">0 / 60</span>
+                </div>
+                <input type="text" id="seo-title" placeholder="Your Page Title — Brand Name" maxlength="200">
+                <p class="hint">Recommended: 50–60 characters. Google truncates titles over ~600px wide.</p>
+            </div>
+
+            <div class="field">
+                <div class="field-meta">
+                    <label for="seo-url">Page URL</label>
+                    <span class="char-count ok" id="url-count">0</span>
+                </div>
+                <input type="text" id="seo-url" placeholder="https://example.com/your-page-slug">
+                <p class="hint">Use short, descriptive URLs with hyphens. Avoid parameters when possible.</p>
+            </div>
+
+            <div class="field">
+                <div class="field-meta">
+                    <label for="seo-desc">Meta Description</label>
+                    <span class="char-count ok" id="desc-count">0 / 160</span>
+                </div>
+                <textarea id="seo-desc" placeholder="Write a compelling description that encourages users to click. Include your target keyword naturally." rows="3"></textarea>
+                <p class="hint">Recommended: 120–160 characters. Google may rewrite descriptions that don't match the query.</p>
+            </div>
+
+            <div class="field">
+                <div class="field-meta">
+                    <label for="seo-date">Published Date (optional)</label>
+                </div>
+                <input type="date" id="seo-date">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Live Preview</h2>
+
+            <div class="device-toggle">
+                <button class="active" id="btn-desktop" onclick="setDevice('desktop')">Desktop</button>
+                <button id="btn-mobile" onclick="setDevice('mobile')">Mobile</button>
+            </div>
+
+            <div class="serp-preview-box" id="serp-box">
+                <div class="serp-result">
+                    <div class="serp-breadcrumb">
+                        <div class="favicon" id="favicon-wrap">
+                            <img id="favicon-img" src="" alt="" style="display:none;">
+                            <svg id="favicon-fallback" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </div>
+                        <div>
+                            <div class="site-name" id="serp-sitename">example.com</div>
+                            <div class="url-path" id="serp-url">https://example.com</div>
+                        </div>
+                    </div>
+                    <a class="serp-title" id="serp-title">Your Page Title</a>
+                    <div class="serp-description" id="serp-desc">Your meta description will appear here. Write something compelling that makes users want to click through to your page.</div>
+                </div>
+            </div>
+
+            <div class="score-bar" id="score-bar">
+                <div class="score-item"><span class="score-dot green"></span> Title length</div>
+                <div class="score-item"><span class="score-dot green"></span> Description length</div>
+                <div class="score-item"><span class="score-dot green"></span> URL length</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        Powered by <a href="https://seobolt.io">SEObolt</a> — Free SEO Tools by <a href="https://royalplugins.com">Royal Plugins</a>
+    </footer>
+
+    <script>
+        const titleInput = document.getElementById('seo-title');
+        const urlInput = document.getElementById('seo-url');
+        const descInput = document.getElementById('seo-desc');
+        const dateInput = document.getElementById('seo-date');
+
+        const titleCount = document.getElementById('title-count');
+        const urlCount = document.getElementById('url-count');
+        const descCount = document.getElementById('desc-count');
+
+        const serpTitle = document.getElementById('serp-title');
+        const serpUrl = document.getElementById('serp-url');
+        const serpSitename = document.getElementById('serp-sitename');
+        const serpDesc = document.getElementById('serp-desc');
+        const serpBox = document.getElementById('serp-box');
+        const scoreBar = document.getElementById('score-bar');
+
+        const faviconImg = document.getElementById('favicon-img');
+        const faviconFallback = document.getElementById('favicon-fallback');
+
+        function getCharClass(len, min, max) {
+            if (len === 0) return 'ok';
+            if (len >= min && len <= max) return 'ok';
+            if (len > max) return 'over';
+            return 'warn';
+        }
+
+        function getScoreHTML(label, status) {
+            const color = status === 'ok' ? 'green' : status === 'warn' ? 'yellow' : 'red';
+            return `<div class="score-item"><span class="score-dot ${color}"></span> ${label}</div>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function extractDomain(url) {
+            try {
+                const u = new URL(url);
+                return u.hostname.replace('www.', '');
+            } catch {
+                return url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] || 'example.com';
+            }
+        }
+
+        function formatBreadcrumb(url) {
+            try {
+                const u = new URL(url);
+                let path = u.pathname;
+                if (path === '/') return u.href;
+                const parts = path.split('/').filter(Boolean);
+                if (parts.length > 2) {
+                    return u.origin + '/' + parts[0] + ' › ... › ' + parts[parts.length - 1];
+                }
+                return u.origin + ' › ' + parts.join(' › ');
+            } catch {
+                return url || 'https://example.com';
+            }
+        }
+
+        function updateFavicon(url) {
+            const domain = extractDomain(url);
+            if (!domain || domain === 'example.com') {
+                faviconImg.style.display = 'none';
+                faviconFallback.style.display = 'block';
+                return;
+            }
+            const imgUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+            faviconImg.src = imgUrl;
+            faviconImg.style.display = 'block';
+            faviconFallback.style.display = 'none';
+            faviconImg.onerror = function() {
+                faviconImg.style.display = 'none';
+                faviconFallback.style.display = 'block';
+            };
+        }
+
+        function update() {
+            const title = titleInput.value;
+            const url = urlInput.value;
+            const desc = descInput.value;
+            const date = dateInput.value;
+
+            const titleLen = title.length;
+            const descLen = desc.length;
+            const urlLen = url.length;
+
+            const titleClass = getCharClass(titleLen, 30, 60);
+            const descClass = getCharClass(descLen, 120, 160);
+            const urlClass = urlLen > 75 ? 'over' : 'ok';
+
+            titleCount.textContent = `${titleLen} / 60`;
+            titleCount.className = `char-count ${titleClass}`;
+
+            urlCount.textContent = urlLen;
+            urlCount.className = `char-count ${urlClass}`;
+
+            descCount.textContent = `${descLen} / 160`;
+            descCount.className = `char-count ${descClass}`;
+
+            serpTitle.textContent = title || 'Your Page Title';
+            serpTitle.classList.toggle('truncated', titleLen > 60);
+
+            serpSitename.textContent = extractDomain(url) || 'example.com';
+            serpUrl.textContent = formatBreadcrumb(url);
+
+            const datePrefix = date ? `<span class="serp-date">${formatDate(date)} — </span>` : '';
+            const descText = desc || 'Your meta description will appear here. Write something compelling that makes users want to click through to your page.';
+            serpDesc.innerHTML = datePrefix + descText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            updateFavicon(url);
+
+            const titleStatus = titleLen === 0 ? 'warn' : titleClass;
+            const descStatus = descLen === 0 ? 'warn' : descClass;
+            const urlStatus = urlLen === 0 ? 'warn' : urlClass;
+
+            scoreBar.innerHTML =
+                getScoreHTML('Title length', titleStatus) +
+                getScoreHTML('Description length', descStatus) +
+                getScoreHTML('URL length', urlStatus);
+        }
+
+        function setDevice(device) {
+            document.getElementById('btn-desktop').classList.toggle('active', device === 'desktop');
+            document.getElementById('btn-mobile').classList.toggle('active', device === 'mobile');
+            serpBox.classList.toggle('mobile', device === 'mobile');
+        }
+
+        titleInput.addEventListener('input', update);
+        urlInput.addEventListener('input', update);
+        descInput.addEventListener('input', update);
+        dateInput.addEventListener('change', update);
+
+        update();
+    </script>
+</body>
+</html>
